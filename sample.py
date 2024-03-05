@@ -1,28 +1,29 @@
 import sqlite3 as sq
 
-connection = sq.connect("student.db")
+connection = sq.connect("food.db")
 cursor = connection.cursor()
 
 table_info="""
-create table if not exists STUDENT(
+create table if not exists PEOPLE (
     NAME VARCHAR(25), 
     CLASS VARCHAR(25),
-    SECTION VARCHAR(25)
+    SECTION VARCHAR(25),
+    SCORE INT
 );
 """
 
 cursor.execute(table_info)
 cursor.executescript(
-    """insert into STUDENT values('Paul','Data Science', 'A');
-    insert into STUDENT values('Alex','Data Science', 'B');
-    insert into STUDENT values('Joshua','Data Science', 'A');
-    insert into STUDENT values('Derik','History', 'A');
-    insert into STUDENT values('Jason','History', 'A');
-    insert into STUDENT values('Maya','History', 'A');"""
+    """insert into PEOPLE values('Paul','Data Science', 'A', 10);
+    insert into PEOPLE values('Alex','Data Science', 'B', 10);
+    insert into PEOPLE values('Joshua','Data Science', 'A', 10);
+    insert into PEOPLE values('Derik','History', 'A', 10);
+    insert into PEOPLE values('Jason','History', 'A', 10);
+    insert into PEOPLE values('Maya','History', 'A', 10);"""
 )
 
 data = cursor.execute(
-    """select * from STUDENT"""
+    """select * from PEOPLE """
 )
 for i in data:
     print(i)

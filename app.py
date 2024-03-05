@@ -14,7 +14,10 @@ def get_gemini_response(question: str, prompt: str) -> str:
     return resp.text
 
 def read_sql_query(sql: str, db: str) -> None:
-    conn = sq.connect(db)
+    with open(db.name, "wb") as f:
+        f.write(db.getbuffer())
+    
+    conn = sq.connect(db.name)
     cur = conn.cursor()
     cur.execute(sql)
     conn.commit()
@@ -26,8 +29,6 @@ def read_sql_query(sql: str, db: str) -> None:
     return rows
 
 prompt = ["""You are an expert in converting English questions to SQL code!
-    The SQL database has name STUDENT and has the following columns - NAME, CLASS, SECTION
-
     For example, 
     Example 1 - How many entries of records are present?
     The SQL command will be something like this SELECT COUNT(*) FROM STUDENT;
@@ -37,8 +38,6 @@ prompt = ["""You are an expert in converting English questions to SQL code!
     also the sql code should not have ``` in beginning or end and sql word in output (i.e output should be plane text without markdown)
     """,
     """You are an expert in generating markdown for SQL data!
-    The SQL database has name STUDENT and has the following columns - NAME, CLASS, SECTION
-
     For example, 
     Example 1 - If you get input like ('Paul', 'Data Science', 'A'), ('Joshua', 'Data Science', 'A')
     The markdown output will be a table like 
@@ -46,17 +45,23 @@ prompt = ["""You are an expert in converting English questions to SQL code!
     |---|---|---|
     |Paul|Data Science|A|
     |Joshua|Data Science|A|
+    make sure to add extra columns and rows as they increase in the input, and give appropriate names too
+    make sure to not tabulate the kind of input (single word output) that need not be tabulated.
+
     """]
 
 st.set_page_config(page_title="Having trouble writing SQL query?")
 st.header("Retrieve SQL data without having to write SQL queries, just write it in English!")
 
+db = st.file_uploader("Upload database file", type=["db"])
+
 question = st.text_input("Input: ", key="input", placeholder="Tell me what to do in English!")
+st.info("Make sure to include **in TABLENAME** with the input")
 submit = st.button("Ask")
 
 if submit:
     sql_response = get_gemini_response(question, prompt[0])
-    response = read_sql_query(sql_response, "student.db")
+    response = read_sql_query(sql_response, db)
     print(response)
 
     md_resp = get_gemini_response(" ".join(str(response)), prompt[1])
